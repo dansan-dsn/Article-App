@@ -16,9 +16,9 @@ router.get('/login', (req, res) => {
 			
 			const data = {
 				name: req.body.username,
-				password: req.body.password,
-				comfirm_password: req.body.comfirm_password
+				password: req.body.password
 			}
+			const c_password = req.body.comfirm_password
 
 			// check if user already exits in the database
 			const existingUser = await collection.findOne({name: data.name})
@@ -26,7 +26,7 @@ router.get('/login', (req, res) => {
 				res.send('User already exits. Please choose a different username.')
 			} else {
 
-				if(data.password != data.comfirm_password) {
+				if(data.password != c_password) {
 					return res.status(400).send({message: 'Password do not match'});
 				} else {
                    // hash the password using bcrypt

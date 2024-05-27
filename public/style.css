@@ -9,6 +9,11 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	background-image: linear-gradient(to right, #644951, #198b8f);
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+	color: #a0bbac;
 }
 
 h2 {
@@ -22,6 +27,13 @@ h2 {
 	padding: 20px;
 	border: 1px solid #ccc;
 	border-radius: 5px;
+	background-color: #3d5a68;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+input[type='text'], input[type="password"] {
+	width: 100%;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .form-group {
@@ -46,7 +58,8 @@ h2 {
 	display: block;
 	width: 100%;
 	padding: 10px;
-	background-color: #472dbb;
+	/* background-color: #472dbb; */
+	background-color: #ff6699;
 	color: #fff;
 	border: none;
 	border-radius: 5px;
@@ -59,4 +72,14 @@ h2 {
 
 p {
 	margin-top: 15px;
+	font-family: sans-serif;
+	color: white;
+}
+
+p a {
+	color: rgb(31, 199, 157);
+}
+
+p a:hover {
+	text-decoration: none;
 }

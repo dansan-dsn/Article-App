@@ -11,11 +11,6 @@ const LoginSchema = new mongoose.Schema(
 		password: {
 			type: String,
 			required: true
-		},
-
-		comfirm_password: {
-			type: String,
-			required: true
 		}
 	},
 	{
