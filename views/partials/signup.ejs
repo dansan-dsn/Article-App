@@ -9,7 +9,7 @@
   <body>
     <div class="form-container">
       <h2>SignUp</h2>
-      <form action="/signup" method="post">
+      <form action="/api/user/signup" method="post">
         <div class="form-group">
           <label for="name"
             >Name
@@ -34,10 +34,22 @@
               />
             </label>
           </div>
+          <div class="form-group">
+            <label for="comfirm_password"
+              >Comfirm Password
+              <input
+                type="password"
+                name="comfirm_password"
+                id="comfirm_password"
+                placeholder="password"
+                required
+              />
+            </label>
+          </div>
         </div>
         <button type="submit" class="submit-btn">Signup</button>
       </form>
-      <p>Have an account? <a href="/login">Login</a></p>
+      <p>Have an account? <a href="/api/user/login">Login</a></p>
     </div>
   </body>
 </html>
