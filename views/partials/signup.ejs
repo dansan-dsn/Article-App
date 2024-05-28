@@ -5,25 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Signup</title>
     <link rel="stylesheet" href="/style.css" />
-    <!-- <link rel="stylesheet" href="/bootstrap.css">
-    <link rel="stylesheet" href="/boostrap.js"> -->
+    <link rel="stylesheet" href="/bootstrap.css">
+    <link rel="stylesheet" href="/boostrap.js">
   </head>
   <body>
     <div class="form-container container bg-danger">
       <h2>SignUp</h2>
       <form action="/api/user/signup" method="post">
         <div class="form-group">
-          <label for="name"
-            >Name
+          <label for="email"
+            >Email
             <input
-              type="text"
-              name="username"
-              id="name"
-              placeholder="Enter your name"
+              type="email"
+              name="email"
+              id="email"
+              placeholder="Enter your email"
               required
               autocomplete="off"
             />
           </label>
+          <% if(msg) { %>
+            <div class="alert alert-danger" role="alert">
+               <%= msg %>
+            </div>
+          <% } %>
           <div class="form-group">
             <label for="password"
               >Password
@@ -48,6 +53,11 @@
               />
             </label>
           </div>
+          <% if(msg1) { %>
+            <div class="alert alert-danger" role="alert">
+               <%= msg1 %>
+            </div>
+          <% } %>
         </div>
         <button type="submit" class="submit-btn">Signup</button>
       </form>

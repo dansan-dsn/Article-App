@@ -31,7 +31,7 @@ h2 {
 	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
-input[type='text'], input[type="password"] {
+input[type='email'], input[type="password"] {
 	width: 100%;
 	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
@@ -83,3 +83,8 @@ p a {
 p a:hover {
 	text-decoration: none;
 }
+
+/* .alert-danger {
+	color: rgb(134, 3, 3) !important;
+	text-shadow: 1px 2px solid #2c3747 !important;
+} */
