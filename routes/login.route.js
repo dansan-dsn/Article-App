@@ -54,7 +54,7 @@ router.get('/login', (req, res) => {
 					console.log("userdata", userdata)
 					// res.render('partials/login', {error: null})
 					res.status(200).json({
-						message : "Successfully registered!"
+						message : "Successfully registered!" // login
 					})
 					}
 					
