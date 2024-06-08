@@ -105,5 +105,14 @@ router.get('/login', (req, res) => {
 		}
 	  })
 
+	  .delete('/delete_user', async (req, res) => {
+		 const { user } = req.body
+	     try {
+			const userId = await collection.findById(user)
+		 } catch (error) {
+			res.status(500).json({message: message.error})
+		 }
+	  })
+
 
 module.exports = router
