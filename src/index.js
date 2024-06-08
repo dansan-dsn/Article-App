@@ -15,7 +15,7 @@ app.use(express.urlencoded({extended: false}))
 app.use('/api/user', router)
 
 // connect to the database
-mongoose.connect('mongodb+srv://ddryn970:login@login.1qsof7j.mongodb.net/?retryWrites=true&w=majority&appName=login', {
+mongoose.connect('mongodb://localhost:27017/Article_API', {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
 })
@@ -30,3 +30,5 @@ mongoose.connect('mongodb+srv://ddryn970:login@login.1qsof7j.mongodb.net/?retryW
 .catch(() => {
 	console.log('DB disconnected')
 })
+
+// mongodb+srv://ddryn970:login@login.1qsof7j.mongodb.net/?retryWrites=true&w=majority&appName=login

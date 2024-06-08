@@ -52,11 +52,43 @@ router.get('/login', (req, res) => {
 
 					data.password = hashedPassword // Replace the hash password with the original password
 
-					// create webtoken and send to the user
-					const token = jwt.sign({
-                        email: data.email,
-                        tel: data.tel
-                    }, process.env.JWT_SECRET, {expiresIn: '1h'})
+					// // create webtoken and send to the user
+					// const token = jwt.sign({
+                    //     email: data.email,
+                    //     tel: data.tel
+                    // }, process.env.JWT_SECRET, {expiresIn: '1h'})
+
+					// // create a transport
+					// const transporter = nodemailer.createTransport({
+                    //     service: 'gmail',
+                    //     auth: {
+                    //         user: process.env.EMAIL,
+                    //         pass:  process.env.PASSWORD
+                    //     }
+                    // })
+
+					// // email option
+					// let mainOptions = {
+					// 	from: process.env.EMAIL,
+                    //     to: data.email,
+                    //     subject: 'Account Verification',
+                    //     html: `
+                    //         <h1>Please verify your account</h1>
+					// 		<p>Your verification token is ${token}</p>
+                            
+                    //     `
+					// } 
+
+					// // send mail
+					// transporter.sendMail(mainOptions, (err, info) => {
+                    //     if(err) {
+                    //         console.log(err)
+                    //         res.status(500).json({message: err.message})
+                    //     } else {
+                    //         console.log(info)
+                    //         res.status(200).json({message: 'Email sent'})
+                    //     }
+                    // })
 
 					const userdata = await collection.insertMany(data)
 					console.log("userdata", userdata)
