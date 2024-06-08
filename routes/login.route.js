@@ -2,6 +2,8 @@ const express = require('express')
 const router = express.Router()
 const path = require('path')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const nodemailer = require('nodemailer')
 const collection = require('../models/login.model')
 
 router.get('/login', (req, res) => {
@@ -27,7 +29,7 @@ router.get('/login', (req, res) => {
 				email: req.body.email,
 				name: req.body.name,
 				tel: req.body.tel,
-				token: TOKEN,
+				userToken: TOKEN,
 				password: req.body.password
 			}
 
@@ -50,6 +52,12 @@ router.get('/login', (req, res) => {
 
 					data.password = hashedPassword // Replace the hash password with the original password
 
+					// create webtoken and send to the user
+					const token = jwt.sign({
+                        email: data.email,
+                        tel: data.tel
+                    }, process.env.JWT_SECRET, {expiresIn: '1h'})
+
 					const userdata = await collection.insertMany(data)
 					console.log("userdata", userdata)
 					// res.render('partials/login', {error: null})
@@ -71,6 +79,11 @@ router.get('/login', (req, res) => {
 			const phoneCheck = await collection.findOne({tel: req.body.tel})
 
 			const check = emailCheck || phoneCheck
+			check.status = 'active'
+			await check.save()
+
+			if( check.status === 'active') {
+			// check for status as well if active
 			if(check) {
 				// compare hashed password from the database with plain text
 			const isPasswordMatch = await bcrypt.compare(req.body.password, check.password)
@@ -83,12 +96,13 @@ router.get('/login', (req, res) => {
 				res.status(200).json({
 					message: "successfully logged in!",
 					Info: {
-						token: check.token,
+						userToken: check.userToken,
 						name: check.name,
 						email: check.email,
 						tel: check.tel,
 						createdAt: check.createdAt,
-						lastLogin: check.lastLogin
+						lastLogin: check.lastLogin,
+						status: check.status
 						}
 				})
 			} else {
@@ -99,6 +113,9 @@ router.get('/login', (req, res) => {
 				// res.render('partials/login' ,{ error: 'User name cannot be found'})
 				res.status(404).json({status: "404" ,error: "User not found"})
 			}
+		}else {
+			res.status(403).json({message: 'Please activate your accout!'})
+		}
 			
 		} catch (error) {
 			res.status(500).json({message: error.message})
@@ -106,9 +123,15 @@ router.get('/login', (req, res) => {
 	  })
 
 	  .delete('/delete_user', async (req, res) => {
-		 const { user } = req.body
+		 const { userId } = req.params.id
 	     try {
-			const userId = await collection.findById(user)
+			const user = await collection.findById(user)
+			if(user) {
+				await collection.deleteOne({_id: userId})
+                res.status(200).json({message: "User deleted"})
+				user.status == 'deactive'
+				await user.save()
+			}
 		 } catch (error) {
 			res.status(500).json({message: message.error})
 		 }

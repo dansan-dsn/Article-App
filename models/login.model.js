@@ -18,10 +18,15 @@ const LoginSchema = new mongoose.Schema(
 			required: true
 		},
 
-		token: {
+		userToken: {
 			type: String,
 			required: true
 		},
+
+		// passToken: {
+		// 	type: String,
+        //     required: true
+		// },
 
 		password: {
 			type: String,
@@ -36,6 +41,11 @@ const LoginSchema = new mongoose.Schema(
 		lastLogin: {
 			type: Date,
 			default: Date.now
+		},
+
+		status: {
+			type: String,
+			default: "pending"
 		}
 
 	},
