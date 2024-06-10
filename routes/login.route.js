@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const router = express.Router()
 const path = require('path')
@@ -17,7 +18,7 @@ router.get('/login', (req, res) => {
 		try {
 
 			const TString = () => {
-				return Math.floor(Math.random() * 10)
+				return Math.floor(Math.random() * 10) // generates a token
 			}
 			
 			let TOKEN = ''
@@ -25,11 +26,21 @@ router.get('/login', (req, res) => {
 				TOKEN += TString()
 			}
 			
+			// generate a token
+			const jToken = jwt.sign(
+				{ id: collection._id},
+				process.env.JWT_SECRET,
+				{
+					expiresIn: '1h'
+				}
+			)
+
 			const data = {
 				email: req.body.email,
-				name: req.body.name,
+				username: req.body.username,
 				tel: req.body.tel,
 				userToken: TOKEN,
+				passToken: jToken,
 				password: req.body.password
 			}
 
@@ -52,50 +63,35 @@ router.get('/login', (req, res) => {
 
 					data.password = hashedPassword // Replace the hash password with the original password
 
-					// // create webtoken and send to the user
-					// const token = jwt.sign({
-                    //     email: data.email,
-                    //     tel: data.tel
-                    // }, process.env.JWT_SECRET, {expiresIn: '1h'})
-
-					// // create a transport
-					// const transporter = nodemailer.createTransport({
-                    //     service: 'gmail',
-                    //     auth: {
-                    //         user: process.env.EMAIL,
-                    //         pass:  process.env.PASSWORD
-                    //     }
-                    // })
-
-					// // email option
-					// let mainOptions = {
-					// 	from: process.env.EMAIL,
-                    //     to: data.email,
-                    //     subject: 'Account Verification',
-                    //     html: `
-                    //         <h1>Please verify your account</h1>
-					// 		<p>Your verification token is ${token}</p>
-                            
-                    //     `
-					// } 
-
-					// // send mail
-					// transporter.sendMail(mainOptions, (err, info) => {
-                    //     if(err) {
-                    //         console.log(err)
-                    //         res.status(500).json({message: err.message})
-                    //     } else {
-                    //         console.log(info)
-                    //         res.status(200).json({message: 'Email sent'})
-                    //     }
-                    // })
-
 					const userdata = await collection.insertMany(data)
-					console.log("userdata", userdata)
+					console.log(userdata)
 					// res.render('partials/login', {error: null})
-					res.status(200).json({
-						message : "Successfully registered!" // login
+
+					const transporter = nodemailer.createTransport({
+						service: 'gmail',
+						auth: {
+							user: process.env.EMAIL_USER,
+							pass: process.env.EMAIL_PASS
+						}
 					})
+
+					const mailOption = {
+						from: process.env.EMAIL_USER,
+						to: process.env.EMAIL_USER,
+						subject: 'User Registration',
+                        html: `
+                            <h1>User Verification</h1>
+                            <p>Please click on the link below to verify your account</p>
+                            <a href="http://localhost:8080/api/user/verify/${jToken}">http://localhost:8080/api/user/verify/${jToken}</a>`
+					}
+					const sendMail = async (transporter, mailOption) => {
+						await transporter.sendMail(mailOption)
+						console.log('Email sent')
+						res.status(200).json({
+							message : "Successfully registered! and email sent" // login
+						})
+					}
+					sendMail(transporter, mailOption)
 					}
 					
 				}
@@ -122,21 +118,25 @@ router.get('/login', (req, res) => {
 			if(isPasswordMatch) {
 				// res.status(200).render('home')
 
-				check.lastLogin = Date.now()  // update on login date
-				await check.save()
-
+				// generate passtoken
+					check.lastLogin = Date.now()  // update on login date
+				    await check.save()
+					
 				res.status(200).json({
 					message: "successfully logged in!",
 					Info: {
 						userToken: check.userToken,
-						name: check.name,
+						username: check.username,
 						email: check.email,
 						tel: check.tel,
+						passToken: `Valid for only 1hr "${check.passToken}"`,
 						createdAt: check.createdAt,
 						lastLogin: check.lastLogin,
 						status: check.status
 						}
 				})
+
+				
 			} else {
 				// res.render('partials/login', { error: 'Wrong password. Please try again'})
 				res.json({status: "422", error: "wrong password"}).status(422)
@@ -154,18 +154,21 @@ router.get('/login', (req, res) => {
 		}
 	  })
 
-	  .delete('/delete_user', async (req, res) => {
-		 const { userId } = req.params.id
-	     try {
-			const user = await collection.findById(user)
-			if(user) {
-				await collection.deleteOne({_id: userId})
-                res.status(200).json({message: "User deleted"})
-				user.status == 'deactive'
-				await user.save()
+	  .delete('/delete_user/:id', async (req, res) => {
+		  try {
+			const userId  = req.params.id
+			const user = await collection.findById(userId)
+			if(!user) {
+				return res.status(404).json({message: "User not found"})
 			}
+              await collection.findByIdAndDelete(userId)
+			  
+			//   collection.status == 'deactive'
+			//   await collection.save()
+			  res.status(200).json({message: "User deleted successfully", status: "deactive"})
+			
 		 } catch (error) {
-			res.status(500).json({message: message.error})
+			res.status(500).json({message: "Internal server error"})
 		 }
 	  })
 

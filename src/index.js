@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const mongoose = require('mongoose')
 const router = require('../routes/login.route')
@@ -15,7 +16,7 @@ app.use(express.urlencoded({extended: false}))
 app.use('/api/user', router)
 
 // connect to the database
-mongoose.connect('mongodb://localhost:27017/Article_API', {
+mongoose.connect(process.env.MONGO_URI, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
 })

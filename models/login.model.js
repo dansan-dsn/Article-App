@@ -8,7 +8,7 @@ const LoginSchema = new mongoose.Schema(
 			required: true
 		},
 
-		name: {
+		username: {
 			type: String,
 			required: true
 		},
@@ -23,10 +23,11 @@ const LoginSchema = new mongoose.Schema(
 			required: true
 		},
 
-		// passToken: {
-		// 	type: String,
-        //     required: true
-		// },
+		passToken: {
+			type: String,
+            required: false,
+			default: null
+		},
 
 		password: {
 			type: String,
