@@ -31,5 +31,3 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch(() => {
 	console.log('DB disconnected')
 })
-
-// mongodb+srv://ddryn970:login@login.1qsof7j.mongodb.net/?retryWrites=true&w=majority&appName=login

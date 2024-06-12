@@ -5,6 +5,7 @@ const LoginSchema = new mongoose.Schema(
 	{
 		email: {
 			type: String,
+			unique: true,
 			required: true
 		},
 
@@ -18,14 +19,9 @@ const LoginSchema = new mongoose.Schema(
 			required: true
 		},
 
-		userToken: {
-			type: String,
-			required: true
-		},
-
 		passToken: {
 			type: String,
-            required: false,
+            required: true,
 			default: null
 		},
 
@@ -46,8 +42,13 @@ const LoginSchema = new mongoose.Schema(
 
 		status: {
 			type: String,
-			default: "pending"
-		}
+			required: true
+		},
+
+		// role: {
+		// 	type: String,
+		// 	required: true
+		// }
 
 	},
 	{
