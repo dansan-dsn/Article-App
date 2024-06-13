@@ -150,17 +150,31 @@ const collection = require('../models/login.model')
 	  .put('/deactivate_account', async (req, res) => {
 			try {
 				
-				const data = {email: req.body.email}
+				const email = req.body.email
 
-				const existingUser = await collection.findOne({email: data.email})
+				const existingUser = await collection.findOne({email: email})
 				if(!existingUser) return res.status(404).json({message: "User can't be found"})
 
 				await collection.updateOne({email: req.body.email}, {status: 'deactive'})
-				res.status(200).json({message: `Account ${data.email} has been deactivated`})
+				res.status(200).json({message: `Account ${email} has been deactivated`})
 				
 			} catch (error) {
 				res.json({error: error.message})
 			}
+	  })
+
+	  .put('/activate_account', async (req, res) => {
+		  try {
+			const email = req.body.email
+			const updateAccount = await collection.findOne({email: email})
+			if(!updateAccount) return res.status(404).json({message: 'Account can not be found'})
+			
+			await collection.updateOne({email: email}, {status: 'active'})
+			res.status(200).json({message: `Account ${email} has been updated`})
+
+		  } catch (error) {
+			 res.status(500).json({error: error.message})
+		  }
 	  })
 
 module.exports = router
