@@ -63,9 +63,9 @@ const collection = require('../models/login.model')
 
 					const sendMail = async (transporter, mailOption) => {
 						await transporter.sendMail(mailOption)
-						console.log('Email sent')
+						console.log('authorization email sent')
 						res.status(200).json({
-							message : "Successfully registered! and email sent" // login
+							message : "Successfully registered! and authorization email sent" // login
 						})
 					}
 					sendMail(transporter, mailOption)
@@ -85,7 +85,7 @@ const collection = require('../models/login.model')
 
 	.post('/verify', async (req, res) => {
 		try {
-			const { passToken } = await collection.findOne(req.body)
+			const { passToken } = req.body
 
 			if(!passToken) return res.status(404).json({error: 'Token is required'})
 		
@@ -209,25 +209,46 @@ const collection = require('../models/login.model')
 
 				const sendMail = async (transporter, mailOption) => {
                     await transporter.sendMail(mailOption)
-                    console.log('Email sent')
+                    console.log('password reset email sent')
                     res.status(200).json({
-                        message : "Email sent" // Reseting password
+                        message : "password reset email sent", // Reseting password
+						token: `${token}`
                     })
                 }
                 sendMail(transporter, mailOption)
+				await collection.findOneAndUpdate( {passToken: token} )
 
 		} catch (error) {
 			res.status(505).json({error: error.message})
 		}
 	  })
 
-	  .post('/reset_forgotten_password', async (req, res) => {
+	   .post('/reset_forgotten_password', async (req, res) => {
 		try {
+			const { passToken, password, comfirmPassword } = req.body
+			if(!passToken) return res.status(404).json({error: 'Token is required'})
+
+			const decoded = jwt.verify(passToken, process.env.JWT_SECRET)
+			if(!decoded) return res.status(404).json({error: 'Invalid Token'})
+
+			const user = await collection.findOne({passToken})
+			if(!user) return res.status(404).json({error: 'User cannot be found'})
+
+			if(password != comfirmPassword) return res.status(400).json({error: 'Password do not match'})
 			
-		} catch (error) {
-			res.status(500).json({error: error.message})
-		}
-	  })
+			const hashedPassword = await bcrypt.hash(password, 10)
+			user.password =  hashedPassword   // update password using the user
+
+			await user.save()
+			await collection.findOneAndUpdate({passToken: null})
+            res.status(200).json({message: 'Password updated successfully'})
 	
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ error: error.message });
+		}
+	});
 
 module.exports = router
+
+// regenerate token - token expired
