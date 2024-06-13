@@ -249,6 +249,54 @@ const collection = require('../models/login.model')
 		}
 	});
 
+
+	    router.post('/new_token', async (req, res) => {
+			try {
+				const { email } = req.body
+				const user = await collection.findOne({email: email})
+				if(!user) return res.status(404).json({error: 'User not found'})
+				
+				const token = jwt.sign(
+                    { id: user._id},
+                    process.env.JWT_SECRET,
+                    {
+					    expiresIn: '1h'
+                    }
+                )
+
+				const transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: process.env.EMAIL_USER,
+                        pass:  process.env.EMAIL_PASS
+                    }
+                })
+                const mailOption = {
+                    from: process.env.EMAIL_USER,
+                    to: process.env.EMAIL_USER,
+                    subject: 'Reset Authentication',
+                    html: `
+                        <h1>Password Reset</h1>
+                        <p>Please click on the link below to update your authorization</p>
+                        <a href="http://localhost/reset-password/${token}">Reset Authorization"</a>`
+                }
+
+				const sendMail = (transporter, mailOption) => {
+					transporter.sendMail(mailOption)
+                    console.log('Authorization reset email sent')
+                    res.status(200).json({
+                        message : "Authorization reset email sent", // Reseting password
+                        token: `${token}`
+                    })
+				}
+				sendMail(transporter, mailOption)
+				await collection.findOneAndUpdate( {passToken: token} )
+
+			} catch (error) {
+				res.status(500).json({error: error.message})
+			}
+		})
+
 module.exports = router
 
 // regenerate token - token expired
