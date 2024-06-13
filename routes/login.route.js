@@ -177,4 +177,57 @@ const collection = require('../models/login.model')
 		  }
 	  })
 
+	  .post('/forgot_password', async (req, res) => {
+		try {
+			const email = req.body.email
+			const existingUser = await collection.findOne({email: email})
+			if(!existingUser) return res.status(404).json({message: "User can't be found"})
+				const token = jwt.sign(
+                    { id: existingUser._id},
+                    process.env.JWT_SECRET,
+                    {
+                        expiresIn: '1h'
+                    }
+                )
+
+				const transporter = nodemailer.createTransport({
+					service: 'gmail',
+                    auth: {
+                        user: process.env.EMAIL_USER,
+                        pass:  process.env.EMAIL_PASS
+                    }
+				})
+				const mailOption = {
+					from: process.env.EMAIL_USER,
+                    to: process.env.EMAIL_USER,
+                    subject: 'Password Reset',
+                    html: `
+                        <h1>Password Reset</h1>
+                        <p>Please click on the link below to reset your password</p>
+                        <a href="http://localhost/reset-password/${token}">Reset Password"</a>`
+				}
+
+				const sendMail = async (transporter, mailOption) => {
+                    await transporter.sendMail(mailOption)
+                    console.log('Email sent')
+                    res.status(200).json({
+                        message : "Email sent" // Reseting password
+                    })
+                }
+                sendMail(transporter, mailOption)
+
+		} catch (error) {
+			res.status(505).json({error: error.message})
+		}
+	  })
+
+	  .post('/reset_forgotten_password', async (req, res) => {
+		try {
+			
+		} catch (error) {
+			res.status(500).json({error: error.message})
+		}
+	  })
+	
+
 module.exports = router
