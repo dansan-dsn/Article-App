@@ -3,7 +3,7 @@ const router = express.Router()
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const nodemailer = require('nodemailer')
-const collection = require('../models/login.model')
+const collection = require('../models/user.model')
 
 	  router.post('/signup', async (req, res) => {
 		try {
@@ -29,8 +29,10 @@ const collection = require('../models/login.model')
 			const comfirmPassword = req.body.comfirmPassword
 
 			// check if user already exits in the database
-				const existingUser = await collection.findOne({email: data.email})
-				if(existingUser) return res.status(500).json({message: 'Email, already in use'})
+				const existingEmail = await collection.findOne({email: data.email})
+				const existingUsername = await collection.findOne({username: data.username})
+				
+				if(existingEmail || existingUsername) return res.status(409).json({message: 'Email or username, already in use'})
 
 					if(data.password != comfirmPassword) return res.status(400).json({error: 'Password do not match'})
 					
@@ -64,7 +66,7 @@ const collection = require('../models/login.model')
 					const sendMail = async (transporter, mailOption) => {
 						await transporter.sendMail(mailOption)
 						console.log('authorization email sent')
-						res.status(200).json({
+						res.status(201).json({
 							message : "Successfully registered! and authorization email sent" // login
 						})
 					}
@@ -91,7 +93,7 @@ const collection = require('../models/login.model')
 		
 				// verify the token
 			const decoded = jwt.verify(passToken, process.env.JWT_SECRET)
-			if(!decoded) return res.json({error: 'Invalid Token'})
+			if(!decoded) return res.json({error: 'Invalid Token'}).status(401)
 
 			// verify user using the token
 			const user = await collection.findOne({passToken})
@@ -297,6 +299,25 @@ const collection = require('../models/login.model')
 			}
 		})
 
-module.exports = router
+		.put('/change-password/:_id', async (req, res) => {
+			try {
+				const { currentPassword, newPassword } = req.body
+				const { _id } = req.params
+				const user = await collection.findOne({_id: _id})
+				if(!user) return res.status(404).json({message: 'user can not be found'})
 
-// regenerate token - token expired
+				const isMatch = await bcrypt.compare(currentPassword, user.password)
+				if(!isMatch) return res.status(201).json({message: 'password is not a match'})
+
+				const hashedPassword = await bcrypt.hash(newPassword, 10)
+				user.password =  hashedPassword   // update password using the user
+				await user.save()
+
+				res.status(200).json({message: 'Password updated successfully'})
+
+			} catch (error) {
+				res.status(500).json({message: error.message})
+			}
+		})
+
+module.exports = router
