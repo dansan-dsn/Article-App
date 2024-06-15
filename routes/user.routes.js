@@ -320,4 +320,72 @@ const collection = require('../models/user.model')
 			}
 		})
 
+
+		.put('/change-username/:_id', async (req, res) => {
+			try {
+				const { _id } = req.params
+				const { username, email, tel } = req.body
+
+				const user = await collection.findOne({_id: _id})
+				if(!user) return res.status(404).json({message: 'user can not be found'})
+
+				if(user.email === email || user.tel === tel) {
+					if(user.username !== username) {
+						user.username = username
+						await user.save()
+						return res.status(200).json({message: 'username changed successfully'})
+					} else {
+						res.status(409).json({message: 'Name already in use!!'})
+					}
+				}
+
+			} catch (error) {
+				res.status(500).json({message: error.message})
+			}
+		})
+
+		.put('/change-phone/:_id', async (req, res) => {
+			try {
+				const { _id } = req.params
+				const { tel, email } = req.body
+
+				const user = await collection.findOne({_id: _id})
+                if(!user) return res.status(404).json({message: 'user can not be found'})
+
+				if(user.email !== email) return res.json({message: 'Wrong email'})
+					if(user.tel !== tel) {
+						user.tel = tel
+                        await user.save()
+                        return res.status(200).json({message: 'phone changed successfully'})
+					} else {
+						res.status(409).json({message: 'Phone already in use!!'})
+					}
+				
+			} catch (error) {
+				res.status(500).json({error: error.message})
+			}
+		})
+
+		.put('/change-email/:_id', async (req, res) => {
+			try {
+				const { _id } = req.params
+                const { email, tel } = req.body
+				const user = await collection.findOne({_id: _id})
+				if(!user) return res.status(404).json({message: 'user can not be found'})
+
+				if(user.tel === tel && user.email !== email) {
+					user.email = email
+                    await user.save()
+                    return res.status(200).json({message: 'email changed successfully'})
+				} else {
+					res.status(409).json({message: 'Email already in use or wrong phone number'})
+				}
+				
+			} catch (error) {
+				res.status(500).json({error: error.message})
+			}
+		})
+
+		// change the email, phone, username
+
 module.exports = router
