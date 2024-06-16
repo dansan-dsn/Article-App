@@ -1,7 +1,8 @@
 require('dotenv').config()
 const express = require('express')
 const mongoose = require('mongoose')
-const router = require('../routes/user.routes')
+const user_router = require('../routes/user.routes')
+const article_route = require('../routes/article.route')
 const PORT = process.env.PORT || 8080
 
 const app = express()
@@ -13,7 +14,8 @@ app.use(express.json())
 app.use(express.urlencoded({extended: false}))
  
 // routes
-app.use('/api/user', router)
+app.use('/api/user', user_router)
+// app.use('/api/article', article_route)
 
 // connect to the database
 mongoose.connect(process.env.MONGO_URI, {

@@ -386,6 +386,41 @@ const collection = require('../models/user.model')
 			}
 		})
 
-		// change the email, phone, username
+		.post('/logout/:_id', async (req, res) => {
+			const { _id } = req.params
+			try {
+				const user = await collection.findOne({_id: _id})
+				if(!user) return res.status(404).json({message: 'user can not be found'})
+
+                res.clearCookie('connect.sid')
+                res.status(200).json({message: `${user.username} Logged out successfully`})
+            } catch (error) {
+                res.status(500).json({error: error.message})
+            }
+		})
+		
+
+		.get('/all_', async (req, res) => {
+			try {
+				const users = await collection.find({}, '-password -_id -passToken')
+                res.status(200).json({users: users})
+				
+			} catch (error) {
+				res.status(500).json({error: error.message})
+			}
+		}) 
+
+		.get('/:_id', async (req, res) => {
+			try {
+				const user = await collection.findOne({_id: req.params._id})
+				
+				if(!user) return res.status(404).json({message: 'User not found'})
+
+				res.json({message: user.username}).status(200)
+
+			} catch (error) {
+				res.status(500).json({error: error.message})
+			}
+		})
 
 module.exports = router
