@@ -15,7 +15,7 @@ app.use(express.urlencoded({extended: false}))
  
 // routes
 app.use('/api/user', user_router)
-// app.use('/api/article', article_route)
+app.use('/api/article', article_route)
 
 // connect to the database
 mongoose.connect(process.env.MONGO_URI, {
