@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const mongoose = require('mongoose')
-const collection = require('../models/article.management')
+const collection = require('../models/article.model')
 
 router.post('/create-article', async (req, res) => {
     try {

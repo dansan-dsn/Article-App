@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const collection = require('../models/user.model')
+const collection = require('./user.model')
 
 const ArticleSchema = new mongoose.Schema({
     title: {
