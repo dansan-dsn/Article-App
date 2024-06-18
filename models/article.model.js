@@ -52,6 +52,8 @@ const ArticleSchema = new mongoose.Schema({
         default: Date.now
     }
 
+}, {
+    versionKey: false
 })
 
 ArticleSchema.pre('save', (next) => {
