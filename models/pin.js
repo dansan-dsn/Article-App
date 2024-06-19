@@ -2,13 +2,13 @@ const mongoose = required('mongoose')
 
 const PinSchema = new mongoose.Schema({
     user: {
-        type: Schema.Types.ObjectId,
+        type:mongoose.Schema.Types.ObjectId,
         ref: 'users',
         required: true
     },
 
     article: {
-        type: Schema.Types.ObjectId,
+        type:mongoose.Schema.Types.ObjectId,
         ref: 'Article',
         required: true
     } ,

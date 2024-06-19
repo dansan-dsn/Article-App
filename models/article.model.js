@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const collection = require('./user.model')
 
 const ArticleSchema = new mongoose.Schema({
     title: {
@@ -16,31 +15,16 @@ const ArticleSchema = new mongoose.Schema({
         type: String
     },
 
+    category: {
+        type: String,
+        required: true
+    },
+
     author: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'users'
     },
-
-    comment: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'comments'
-    }],
-
-    reactions: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref:'reactions'
-    }],
-
-    pinned: [{
-       type: Boolean,
-       default: false
-    }],
-
-    shareBy: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'users'
-    }],
 
     createdAt: {
         type: Date,

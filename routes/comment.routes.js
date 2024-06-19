@@ -1,84 +1,95 @@
-const express = require('express')
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 const mongoose = require('mongoose')
-const Comment = require('../models/comment')
+const Comment = require("../models/comment");
+const user = require('../models/user.model')
+const Notification = require("../models/notification");
+const Article = require("../models/article.model");
 
-router.get('/get_comments', async(req, res) => {
+router
+  .get("/get_comments", async (req, res) => {
     try {
-        const Comments = await Comment.find({}, '-_id')
-        if(!Comments) return res.status(404).json({message: 'Comment cannot be found'})
+      const Comments = await Comment.find({}, "-_id");
+      if (!Comments)
+        return res.status(404).json({ message: "Comment cannot be found" });
 
-        res.status(200).json(Comments)
+      res.status(200).json(Comments);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  })
+
+  .get("/get_comment/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+      const comment = await Comment.findById(id, "-_id, -__v");
+      if (!Comment)
+        return res.status(404).json({ message: "Comment not found" });
+
+      res.status(200).json(comment);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  })
+
+  .post("/article", async (req, res) => {
+   
+    try {
+      
+      const { content, authorId, articleId } = req.body
+      const comment = await Comment.create({
+        content,
+        author: authorId,
+        article: articleId
+      })
+     
+      // Notify the article owner
+      Article.findById(articleId).populate('author')
+      const notification = await Notification.create({
+        type: 'comment',
+        // user: Article.author._id,
+        message: `New comment on your article by ${authorId}`
+      })
+
+      res.status(201).json({message: comment, notification})
 
     } catch (error) {
-        res.status(500).json({error: error.message})
+      res.status(500).json({ error: error.message });
     }
-})
+  })
 
-     .get('/get_comment/:id', async (req, res) => {
-         const { id } = req.params
-        try {
-            const comment = await Comment.findById(id, '-_id, -__v')
-            if(!Comment) return res.status(404).json({message: 'Comment not found'})
+  .put("/update_comment/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
 
-            res.status(200).json(comment)
+      const comment = await Comment.findByIdAndUpdate(id, req.body);
 
-        } catch (error) {
-            res.status(500).json({error: error.message})
-        }
-     })
+      if (!comment)
+        return res.status(404).json({ message: "Comment to update not found" });
 
-     .post('/create_comment', async (req, res) => {
-        try {
-            const { content, author, article } = req.body
+      const updateComment = await Comment.findById(id);
 
-            if (!mongoose.Types.ObjectId.isValid(author)) return res.status(400).json({ message: "Invalid author ID" });
-            
-            if(!mongoose.Types.ObjectId.isValid(article)) return res.status(400).json({message: 'Invalid article ID'})
+      res
+        .status(200)
+        .json({ message: "comment updated successfully", updateComment });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  })
 
-            const createComment = new Comment({
-                content,
-                author,
-                article
-            })
+  .delete("/delete_comment/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
 
-            await createComment.save()
-            res.status(200).json({message: 'Comment successfully created', createComment})
+      const deleteComment = await Comment.findByIdAndDelete(id);
+      if (!deleteComment)
+        return res
+          .status(404)
+          .json({ message: "Comment for delete cannot be found" });
 
-
-        } catch (error) {
-            res.status(500).json({error: error.message})
-        }
-     })
-     
-     .put('/update_comment/:id', async (req, res) => {
-        try {
-            const { id } = req.params
-            
-            const comment = await Comment.findByIdAndUpdate(id, req.body)
-
-            if(!comment) return res.status(404).json({message: 'Comment to update not found'})
-
-            const updateComment = await Comment.findById(id)
-           
-            res.status(200).json({message: 'comment updated successfully', updateComment})
-
-        } catch (error) {
-            res.status(500).json({error: error.message})
-        }
-     })
-
-     .delete('/delete_comment/:id', async(req, res) => {
-        try {
-            const { id } = req.params
-
-            const deleteComment = await Comment.findByIdAndDelete(id)
-            if(!deleteComment) return res.status(404).json({message: 'Comment for delete cannot be found'})
-
-            res.json({message: 'Comment successfully deleted'}).status(200)
-
-        } catch (error) {
-            res.status(500).json({error: error.message})
-        }
-     })
-     module.exports = router
+      res.json({ message: "Comment successfully deleted" }).status(200);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+module.exports = router;

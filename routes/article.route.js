@@ -6,7 +6,7 @@ const collection = require("../models/article.model");
 router
   .post("/create-article", async (req, res) => {
     try {
-      const { title, content, imageUrl, author } = req.body;
+      const { title, content, imageUrl, author, category } = req.body;
 
       if (!mongoose.Types.ObjectId.isValid(author)) {
         return res.status(400).json({ message: "Invalid author ID" });
@@ -16,11 +16,8 @@ router
         title,
         content,
         imageUrl,
-        author,
-        comment: [],
-        reactions: [],
-        pinned: [],
-        shareBy: [],
+        category,
+        author
       });
 
       const new_article = await newArticle.save();
@@ -32,17 +29,14 @@ router
 
   .put("/update-article", async (req, res) => {
     try {
-      const { title, content, imageUrl, author } = req.body;
+      const { title, content, imageUrl, author, category } = req.body;
 
       const updatedArticle = await collection.findOneAndUpdate({
         title,
         content,
         imageUrl,
+        category,
         author,
-        comment: [],
-        reactions: [],
-        pinned: [],
-        shareBy: [],
       });
 
       if (!updatedArticle)
