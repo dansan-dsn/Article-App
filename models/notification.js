@@ -11,9 +11,10 @@ const NotificationSchema = new mongoose.Schema({
         required: true
     },
 
-    user: {
+    articleOwner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'users'
+        ref: 'users',
+        // required: true
     },
 
     read: {

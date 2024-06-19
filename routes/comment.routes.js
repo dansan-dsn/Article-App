@@ -37,17 +37,17 @@ router
     try {
       
       const { content, authorId, articleId } = req.body
-      const comment = await Comment.create({
+      const comment = await Comment.create({  // create a comment... 
         content,
         author: authorId,
         article: articleId
       })
      
       // Notify the article owner
-      Article.findById(articleId).populate('author')
-      const notification = await Notification.create({
+      const article = await Article.findById(articleId).populate('author')  // we are filling the author with id from the user model
+      const notification = await Notification.create({  // create a notification
         type: 'comment',
-        // user: Article.author._id,
+        articleOwner: article.author._id,
         message: `New comment on your article by ${authorId}`
       })
 

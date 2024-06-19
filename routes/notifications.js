@@ -4,8 +4,7 @@ const Notification = require('../models/notification')
 
 route.post('/create', async (req, res) => {
      try {
-       const notifications = new Notification(req.body)
-       await notifications.save()
+      
 
      } catch (error) {
         res.status(500).json({error: error.message})
