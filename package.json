@@ -1,10 +1,10 @@
 {
   "name": "data-manager",
   "version": "1.0.0",
-  "main": "scr/index.js",
+  "main": "scr/config.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "start": "node src/config.js",
+    "dev": "nodemon src/config.js"
   },
   "author": "d.s.n",
   "license": "ISC",

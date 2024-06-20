@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const mongoose = require('mongoose')
 const Comment = require("../models/comment");
-const user = require('../models/user.model')
 const Notification = require("../models/notification");
 const Article = require("../models/article.model");
 
@@ -33,26 +31,25 @@ router
   })
 
   .post("/article", async (req, res) => {
-   
     try {
-      
-      const { content, authorId, articleId } = req.body
-      const comment = await Comment.create({  // create a comment... 
+      const { content, authorId, articleId } = req.body;
+      const comment = await Comment.create({
+        // create a comment...
         content,
         author: authorId,
-        article: articleId
-      })
-     
+        article: articleId,
+      });
+
       // Notify the article owner
-      const article = await Article.findById(articleId).populate('author')  // we are filling the author with id from the user model
-      const notification = await Notification.create({  // create a notification
-        type: 'comment',
+      const article = await Article.findById(articleId).populate("author"); // we are filling the author with id from the user model
+      const notification = await Notification.create({
+        // create a notification
+        type: "comment",
         articleOwner: article.author._id,
-        message: `New comment on your article by ${authorId}`
-      })
+        message: `New comment on your article by ${authorId}`,
+      });
 
-      res.status(201).json({message: comment, notification})
-
+      res.status(201).json({ message: comment, notification });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

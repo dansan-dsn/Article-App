@@ -8,10 +8,10 @@ route
     try {
       const notification = await Notification.findByIdAndUpdate(
         id,
-        { read: true },
+        { read: "read" },
         { new: true }
       );
-      
+
       if (!notification) {
         return res.status(404).json({ message: "Notification not found" });
       }

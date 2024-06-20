@@ -18,8 +18,8 @@ const NotificationSchema = new mongoose.Schema({
     },
 
     read: {
-        type: Boolean,
-        default: false
+        type: String,
+        default: "unread"
     },
 
     createdAt: {
