@@ -17,7 +17,7 @@ router
         content,
         imageUrl,
         category,
-        author
+        author,
       });
 
       const new_article = await newArticle.save();
@@ -27,10 +27,12 @@ router
     }
   })
 
-  .put("/update-article", async (req, res) => {
+  .put("/update-article/:id", async (req, res) => {
     try {
+      const { id } = req.params;
       const { title, content, imageUrl, author, category } = req.body;
 
+      const newArticle = await collection.findById(id);
       const updatedArticle = await collection.findOneAndUpdate({
         title,
         content,
@@ -39,50 +41,58 @@ router
         author,
       });
 
-      if (!updatedArticle)
-        return res.status(404).json({ message: "Article cannot be found for update" });
+      if (!newArticle)
+        return res
+          .status(404)
+          .json({ message: "Article cannot be found for update" });
 
-      res.status(200).json({ message: "Article successfully updated", updatedArticle });
+      res
+        .status(200)
+        .json({ message: "Article successfully updated", updatedArticle });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
-    router.get("/get-articles", async (req, res) => {
+router
+  .get("/get-articles", async (req, res) => {
     try {
-        const articles = await collection.find({}, '-_id')
+      const articles = await collection.find({}, "-_id");
 
-        if(!articles) return res.status(404).json({message: 'Articles not found'})
-        
-        res.status(200).json({message: articles})
+      if (!articles)
+        return res.status(404).json({ message: "Articles not found" });
+
+      res.status(200).json({ message: articles });
     } catch (error) {
-        res.status(500).json({error: error.message})
+      res.status(500).json({ error: error.message });
     }
   })
 
   .get("/get_an_article/:id", async (req, res) => {
     try {
-        const {id} = req.params
-        const article = await collection.findById(id, '-_id')
+      const { id } = req.params;
+      const article = await collection.findById(id, "-_id");
 
-        if(!article) return res.status(404).json({message: 'article cannot be found'})
-        
-        res.status(200).json({message: article})
+      if (!article)
+        return res.status(404).json({ message: "article cannot be found" });
+
+      res.status(200).json({ message: article });
     } catch (error) {
-        res.status(500).json({error: error.message})
+      res.status(500).json({ error: error.message });
     }
   })
 
-  .delete('/delete_article/:id', async (req, res) => {
+  .delete("/delete_article/:id", async (req, res) => {
     try {
-        const { id } = req.params
-        const deletedArticle = await collection.findByIdAndDelete(id)
-        if(!deletedArticle) return res.status(404).json({message: 'NO article to delete'})
+      const { id } = req.params;
+      const deletedArticle = await collection.findByIdAndDelete(id);
+      if (!deletedArticle)
+        return res.status(404).json({ message: "NO article to delete" });
 
-        res.status(200).json({message: 'Article deleted successfully'})
+      res.status(200).json({ message: "Article deleted successfully" });
     } catch (error) {
-        res.status(500).json({error: error.message})
+      res.status(500).json({ error: error.message });
     }
-  })
+  });
 
 module.exports = router;
