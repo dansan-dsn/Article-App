@@ -5,7 +5,7 @@ const Notification = require("../models/notification");
 const Article = require("../models/article.model");
 
 router
-  .get("/get_comments", async (req, res) => {
+  .get("/get_many", async (req, res) => {
     try {
       const Comments = await Comment.find({}, "-_id");
       if (!Comments)
@@ -17,7 +17,7 @@ router
     }
   })
 
-  .get("/get_comment/:id", async (req, res) => {
+  .get("/get_one/:id", async (req, res) => {
     const { id } = req.params;
     try {
       const comment = await Comment.findById(id, "-_id, -__v");
@@ -30,7 +30,7 @@ router
     }
   })
 
-  .post("/article", async (req, res) => {
+  .post("/create", async (req, res) => {
     try {
       const { content, authorId, articleId } = req.body;
       const comment = await Comment.create({
@@ -55,7 +55,7 @@ router
     }
   })
 
-  .put("/update_comment/:id", async (req, res) => {
+  .put("/update_/:id", async (req, res) => {
     try {
       const { id } = req.params;
 
@@ -74,7 +74,7 @@ router
     }
   })
 
-  .delete("/delete_comment/:id", async (req, res) => {
+  .delete("/remove_/:id", async (req, res) => {
     try {
       const { id } = req.params;
 
