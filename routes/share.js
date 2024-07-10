@@ -7,7 +7,7 @@ route.post("/:article_id", async (req, res) => {
     const { article_id } = req.params;
     // const article = await Article.findById(articleId).populate("author");
 
-    const sharedArticle = await Share.create({
+    await Share.create({
       article: article_id,
     });
     res.status(200).json({ message: "successfully shared" });
@@ -20,7 +20,7 @@ route
   .get("/", async (req, res) => {
     try {
       const sharedArticles = await Share.find({});
-      if (!shareArticles)
+      if (!sharedArticles)
         return res.status(404).json({ message: "Cannot find shared article" });
 
       res.status(200).json({ message: sharedArticles });

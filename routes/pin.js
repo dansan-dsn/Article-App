@@ -1,16 +1,21 @@
 const express = require("express");
 const route = express.Router();
 const Article = require("../models/article.model");
-const pinArticle = require("../models/pin");
+const User = require("../models/user.model");
+const pin_model = require("../models/pin");
 
 route.get("/_one/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const pinned = await pinArticle.findById(id);
-    if (!pinned) return res.status(404).json({ message: "Article not found" });
+    const pin_article = await pin_model
+      .findById(id)
+      .populate("user", "username");
 
-    res.status(200).json(pinned);
+    if (!pin_article)
+      return res.status(404).json({ message: "Article not found" });
+
+    res.status(200).json(pin_article);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -18,23 +23,26 @@ route.get("/_one/:id", async (req, res) => {
 
 route.get("/_all", async (req, res) => {
   try {
-    const pinned = await pinArticle.find({});
-    if (!pinned) return res.status(404).json({ message: "Articles not found" });
+    const pin_article = await pin_model.find({}).populate("user", "username");
+    if (!pin_article)
+      return res.status(404).json({ message: "Articles not found" });
 
-    res.status(200).json(pinned);
+    res.status(200).json(pin_article);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-route.post("/create/:id", async (req, res) => {
+route.post("/create/:article_id/:user_id", async (req, res) => {
   try {
-    const { id } = req.params;
-    const article = await Article.findById(id);
+    const { article_id, user_id } = req.params;
+    const article = await Article.findById(article_id);
+    const user = await User.findById(user_id);
     if (!article) return res.status(404).json({ message: "Article not found" });
 
-    const pinned = await pinArticle.create({
+    const pinned = await pin_model.create({
       article: article,
+      user: user,
     });
 
     res.status(200).json({ message: "Article pinned successfully!" });
