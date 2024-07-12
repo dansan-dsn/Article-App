@@ -234,19 +234,22 @@ router
 
   .put("/deactivate_account", async (req, res) => {
     try {
-      const email = req.body.email;
+      const { email, password } = req.body;
 
-      const existingUser = await collection.findOne({ email: email });
-      if (!existingUser)
-        return res.status(404).json({ message: "User can't be found" });
+      const user = await collection.findOne({ email });
+      if (!user)
+        return res
+          .status(404)
+          .json({ message: "Cannot find user with this email" });
 
-      await collection.updateOne(
-        { email: req.body.email },
-        { status: "deactive" }
-      );
+      const isPasswordMatch = await bcrypt.compare(password, user.password);
+      if (!isPasswordMatch)
+        return res.status(404).json({ message: "Incorrect password" });
+
+      await collection.updateOne({ email: email }, { status: "deactive" });
       res
         .status(200)
-        .json({ message: `Account ${email} has been deactivated` });
+        .json({ message: `Account ${user.email} has been deactivated` });
     } catch (error) {
       res.json({ error: error.message });
     }
