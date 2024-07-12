@@ -40,7 +40,7 @@ route.post("/create/:article_id/:user_id", async (req, res) => {
     const user = await User.findById(user_id);
     if (!article) return res.status(404).json({ message: "Article not found" });
 
-    const pinned = await pin_model.create({
+    await pin_model.create({
       article: article,
       user: user,
     });
@@ -54,8 +54,9 @@ route.post("/create/:article_id/:user_id", async (req, res) => {
 route.delete("/undo/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const article = await Article.findByIdAndDelete(id);
-    if (!article) return res.status(404).json({ message: "Article not found" });
+    const pinnedArticle = await pin_model.findByIdAndDelete(id);
+    if (!pinnedArticle)
+      return res.status(404).json({ message: "Article not found" });
 
     res.status(200).json({ message: "Article unpinned successfully!" });
   } catch (error) {
