@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const collection = require("../models/user.model");
+const userModel = require("../models/user.model");
 
 router
   .post("/signup", async (req, res) => {
@@ -57,7 +58,7 @@ router
 
       const mailOption = {
         from: process.env.EMAIL_USER,
-        to: data.email,
+        to: process.env.EMAIL_USER,
         subject: "User Registration",
         html: `
         <h1>User Verification</h1>
@@ -136,48 +137,24 @@ router
 
   .post("/login", async (req, res) => {
     try {
-      let emailCheck = await collection.findOne({ email: req.body.email });
+      const { email, password } = req.body;
+      const user = await collection.findOne({ email });
 
-      const check = emailCheck;
+      if (!user) return res.status(404).json({ message: "User not found" });
 
-      // // check for status if active
-      if (!check)
-        return res
-          .status(404)
-          .json({ status: "404", error: "Email not found" });
-
-      if (check.status == "active") {
-        // compare hashed password from the database with plain text
-        const isPasswordMatch = await bcrypt.compare(
-          req.body.password,
-          check.password
-        );
+      if (user.status == "active") {
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch)
-          return res
-            .json({ status: "422", error: "wrong password" })
-            .status(422);
+          return res.status(422).json({ message: "Incorrect password" });
 
-        check.lastLogin = Date.now(); // update on login date
-        await check.save();
+        user.lastLogin = Date.now();
+        await user.save();
 
-        res.status(200).json({
-          message: "successfully logged in!",
-          Info: {
-            username: check.username,
-            email: check.email,
-            tel: check.tel,
-            passToken: `Valid for only 1hr "${emailCheck.passToken}}"`,
-            createdAt: check.createdAt,
-            lastLogin: check.lastLogin,
-            status: check.status,
-          },
-        });
-      } else if (check.status == "pending") {
-        // return res.status(403).json({ message: "Verifying your account..." });
-        const token = jwt.sign({ id: collection._id }, process.env.JWT_SECRET, {
+        res.status(200).json({ msg: "Login successfully", user });
+      } else if (user.status == "pending") {
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
           expiresIn: "1h",
         });
-
         const transporter = nodemailer.createTransport({
           service: "gmail",
           auth: {
@@ -188,8 +165,8 @@ router
 
         const mailOption = {
           from: process.env.EMAIL_USER,
-          to: check.email,
-          subject: "User Registration",
+          to: process.env.EMAIL_USER,
+          subject: "User Verification",
           html: `
           <h1>User Verification</h1>
           <p>Please click on the link below to verify your account</p>
@@ -205,7 +182,7 @@ router
               padding: 10px 20px;
               border-radius: 5px;
               cursor: pointer;
-            ">Click for Login</a>
+            ">Click For Authentication</a>
           </td>
         </tr>
       </table>
@@ -221,11 +198,14 @@ router
         };
         sendMail(transporter, mailOption);
 
-        // update the status
-        const updateStatus = await collection.findOneAndUpdate({ check });
-        console.log(updateStatus);
+        //update the token
+        const update = await collection.findOneAndUpdate(
+          { email },
+          { passToken: token }
+        );
+        update.save();
       } else {
-        return res.status(403).json({ message: "Account is deactivated" });
+        return res.status(400).json({ msg: "Account is deactive" });
       }
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -262,8 +242,61 @@ router
       if (!updateAccount)
         return res.status(404).json({ message: "Account can not be found" });
 
-      await collection.updateOne({ email: email }, { status: "active" });
-      res.status(200).json({ message: `Account ${email} has been updated` });
+      const token = jwt.sign({ id: collection._id }, process.env.JWT_SECRET, {
+        expiresIn: "1h",
+      });
+
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      const mailOption = {
+        from: process.env.EMAIL_USER,
+        to: process.env.EMAIL_USER,
+        subject: "Account Activation",
+        html: `
+        <h1>Account Activation</h1>
+        <p>Please click on the link below to verify your account</p>
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+      <tr>
+        <td>
+          <a href="http://localhost/api/user/verify?passToken=${token}" style="
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            background-color: green;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+          ">Click for Login</a>
+        </td>
+      </tr>
+    </table>
+        `,
+      };
+
+      const sendMail = async (transporter, mailOption) => {
+        await transporter.sendMail(mailOption);
+        console.log("authorization email sent");
+        res.status(201).json({
+          message: "Successfully registered! and authorization email sent", // login
+        });
+      };
+      sendMail(transporter, mailOption);
+
+      // update the token
+      const updatedToken = await collection.findOneAndUpdate(
+        { email },
+        {
+          passToken: token,
+        }
+      );
+      await updatedToken.save();
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
