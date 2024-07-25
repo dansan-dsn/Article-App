@@ -42,6 +42,5 @@ mongoose
     });
   })
   .catch((error) => {
-    // console.log("DB disconnected");
-    console.log(error);
+    console.log("DB disconnected");
   });

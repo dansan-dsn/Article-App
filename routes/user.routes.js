@@ -46,7 +46,6 @@ router
       data.password = hashedPassword; // Replace the hash password with the original password
 
       const userdata = await collection.insertMany(data);
-      console.log(userdata);
 
       const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -96,7 +95,6 @@ router
         { email: data.email },
         { status: "pending" }
       );
-      console.log(updateStatus);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -150,7 +148,7 @@ router
         user.lastLogin = Date.now();
         await user.save();
 
-        res.status(200).json({ msg: "Login successfully", user });
+        res.status(200).json({ msg: "Login successfully" });
       } else if (user.status == "pending") {
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
           expiresIn: "1h",
@@ -354,7 +352,10 @@ router
         });
       };
       sendMail(transporter, mailOption);
-      await collection.findOneAndUpdate({ passToken: token });
+      const code = await collection.findOneAndUpdate(
+        { email },
+        { passToken: token }
+      );
     } catch (error) {
       res.status(505).json({ error: error.message });
     }
@@ -415,70 +416,70 @@ router
     }
   })
 
-  .put("/change-username/:_id", async (req, res) => {
+  .put("/change-username", async (req, res) => {
     try {
-      const { _id } = req.params;
-      const { username, email, tel } = req.body;
+      const { username, email } = req.body;
 
-      const user = await collection.findOne({ _id: _id });
+      const user = await collection.findOne({ email });
       if (!user)
         return res.status(404).json({ message: "user can not be found" });
 
-      if (user.email === email || user.tel === tel) {
-        if (user.username !== username) {
-          user.username = username;
-          await user.save();
-          return res
-            .status(200)
-            .json({ message: "username changed successfully" });
-        } else {
-          res.status(409).json({ message: "Name already in use!!" });
-        }
-      }
+      if (user.username === username)
+        return res.status(409).json({ message: "New username is required!!!" });
+
+      const usernameExists = await collection.findOne({
+        username,
+      });
+      if (usernameExists)
+        return res.status(400).json({ message: "Username is already taken" });
+
+      user.username = username;
+      await user.save();
+      return res.status(200).json({ message: "username changed successfully" });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   })
 
-  .put("/change-phone/:_id", async (req, res) => {
+  .put("/change-phone", async (req, res) => {
     try {
-      const { _id } = req.params;
       const { tel, email } = req.body;
 
-      const user = await collection.findOne({ _id: _id });
+      const user = await collection.findOne({ email });
       if (!user)
         return res.status(404).json({ message: "user can not be found" });
 
-      if (user.email !== email) return res.json({ message: "Wrong email" });
-      if (user.tel !== tel) {
-        user.tel = tel;
-        await user.save();
-        return res.status(200).json({ message: "phone changed successfully" });
-      } else {
-        res.status(409).json({ message: "Phone already in use!!" });
-      }
+      if (user.tel === tel)
+        return res
+          .status(409)
+          .json({ message: "Ain't you gonna set a new tel number?" });
+
+      user.tel = tel;
+      await user.save();
+      return res.status(200).json({ message: "phone changed successfully" });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   })
 
-  .put("/change-email/:_id", async (req, res) => {
+  .put("/change-email", async (req, res) => {
+    const { email, password, newEmail } = req.body;
     try {
-      const { _id } = req.params;
-      const { email, tel } = req.body;
-      const user = await collection.findOne({ _id: _id });
+      const user = await collection.findOne({ email });
       if (!user)
         return res.status(404).json({ message: "user can not be found" });
 
-      if (user.tel === tel && user.email !== email) {
-        user.email = email;
-        await user.save();
-        return res.status(200).json({ message: "email changed successfully" });
-      } else {
-        res
-          .status(409)
-          .json({ message: "Email already in use or wrong phone number" });
-      }
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch)
+        return res.status(401).json({ message: "Invalid password" });
+
+      const emailExists = await collection.findOne({ email: newEmail });
+      if (emailExists)
+        return res.status(400).json({ message: "Email is already taken" });
+
+      user.email = newEmail;
+      await user.save();
+      return res.status(200).json({ message: "email changed successfully" });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -486,7 +487,7 @@ router
 
   .get("/all_", async (req, res) => {
     try {
-      const users = await collection.find({}, "-password -_id -passToken");
+      const users = await collection.find({});
       res.status(200).json({ users: users });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -495,10 +496,7 @@ router
 
   .get("/one/:_id", async (req, res) => {
     try {
-      const user = await collection.findOne(
-        { _id: req.params._id },
-        "-password -_id -passToken"
-      );
+      const user = await collection.findOne({ _id: req.params._id });
 
       if (!user) return res.status(404).json({ message: "User not found" });
 
